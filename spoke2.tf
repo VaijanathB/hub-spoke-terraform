@@ -45,14 +45,14 @@ resource "azurerm_virtual_network_peering" "spoke2-hub-peer" {
   use_remote_gateways          = true
 }
 
-resource "azurerm_network_interface" "nic" {
+resource "azurerm_network_interface" "spoke2-nic" {
   name                 = "${local.prefix-spoke2}-nic"
   location             = "${azurerm_resource_group.spoke2-vnet-rg.location}"
   resource_group_name  = "${azurerm_resource_group.spoke2-vnet-rg.name}"
   enable_ip_forwarding = true
 
   ip_configuration {
-    name                          = "testconfiguration1"
+    name                          = "${local.prefix-spoke2}"
     subnet_id                     = "${azurerm_subnet.spoke2-mgmt.id}"
     private_ip_address_allocation = "Dynamic"
   }
@@ -66,7 +66,7 @@ resource "azurerm_virtual_machine" "spoke2-vm" {
   name                  = "${local.prefix-spoke2}-vm"
   location              = "${azurerm_resource_group.spoke2-vnet-rg.location}"
   resource_group_name   = "${azurerm_resource_group.spoke2-vnet-rg.name}"
-  network_interface_ids = ["${azurerm_network_interface.nic.id}"]
+  network_interface_ids = ["${azurerm_network_interface.spoke2-nic.id}"]
   vm_size               = "${var.vmsize}"
 
   storage_image_reference {

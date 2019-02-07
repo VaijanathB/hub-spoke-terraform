@@ -24,7 +24,7 @@ resource "azurerm_subnet" "spoke1-mgmt" {
   name                 = "mgmt"
   resource_group_name  = "${azurerm_resource_group.spoke1-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.spoke1-vnet.name}"
-  address_prefix       = "10.0.0.64/27"
+  address_prefix       = "10.1.0.64/27"
 }
 
 resource "azurerm_subnet" "spoke1-workload" {
@@ -45,14 +45,14 @@ resource "azurerm_virtual_network_peering" "spoke1-hub-peer" {
   use_remote_gateways          = true
 }
 
-resource "azurerm_network_interface" "main" {
+resource "azurerm_network_interface" "spoke1-nic" {
   name                 = "${local.prefix-spoke1}-nic"
   location             = "${azurerm_resource_group.spoke1-vnet-rg.location}"
   resource_group_name  = "${azurerm_resource_group.spoke1-vnet-rg.name}"
   enable_ip_forwarding = true
 
   ip_configuration {
-    name                          = "testconfiguration1"
+    name                          = "${local.prefix-spoke1}"
     subnet_id                     = "${azurerm_subnet.spoke1-mgmt.id}"
     private_ip_address_allocation = "Static"
   }
@@ -62,7 +62,7 @@ resource "azurerm_virtual_machine" "spoke1-vm" {
   name                  = "${local.prefix-spoke1}-vm"
   location              = "${azurerm_resource_group.spoke1-vnet-rg.location}"
   resource_group_name   = "${azurerm_resource_group.spoke1-vnet-rg.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  network_interface_ids = ["${azurerm_network_interface.spoke1-nic.id}"]
   vm_size               = "${var.vmsize}"
 
   storage_image_reference {

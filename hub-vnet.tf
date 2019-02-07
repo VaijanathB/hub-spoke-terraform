@@ -7,13 +7,13 @@ locals {
 
 resource "azurerm_resource_group" "hub-vnet-rg" {
   name     = "${local.hub-resource-group}"
-  location = "${local.hub-resource-group}"
+  location = "${local.hub-location}"
 }
 
 resource "azurerm_virtual_network" "hub-vnet" {
   name                = "${local.prefix-hub}-vnet"
-  location            = "${local.hub-location}"
-  resource_group_name = "${local.hub-resource-group}"
+location            = "${azurerm_resource_group.hub-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
   address_space       = ["10.0.0.0/16"]
 
   tags {
@@ -23,33 +23,33 @@ resource "azurerm_virtual_network" "hub-vnet" {
 
 resource "azurerm_subnet" "hub-gateway-subnet" {
   name                 = "GatewaySubnet"
-  resource_group_name  = "${local.hub-resource-group}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.hub-vnet.name}"
   address_prefix       = "10.0.255.224/27"
 }
 
 resource "azurerm_subnet" "hub-mgmt" {
   name                 = "mgmt"
-  resource_group_name  = "${local.hub-resource-group}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.hub-vnet.name}"
   address_prefix       = "10.0.0.64/27"
 }
 
 resource "azurerm_subnet" "hub-dmz" {
   name                 = "mgmt"
-  resource_group_name  = "${local.spoke2-resource-group}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.hub-vnet.name}"
   address_prefix       = "10.0.0.32/27"
 }
 
 resource "azurerm_network_interface" "hub-nic" {
   name                 = "${local.prefix-hub}-nic"
-  location             = "${local.hub-location}"
-  resource_group_name  = "${local.hub-resource-group}"
+location            = "${azurerm_resource_group.hub-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
   enable_ip_forwarding = true
 
   ip_configuration {
-    name                          = "testconfiguration1"
+    name                          = "${local.prefix-hub}"
     subnet_id                     = "${azurerm_subnet.hub-mgmt.id}"
     private_ip_address_allocation = "Dynamic"
   }
@@ -62,9 +62,9 @@ resource "azurerm_network_interface" "hub-nic" {
 #Virtual Machine
 resource "azurerm_virtual_machine" "hub-vm" {
   name                  = "${local.prefix-hub}-vm"
-  location              = "${local.hub-location}"
-  resource_group_name   = "${local.hub-resource-group}"
-  network_interface_ids = ["${azurerm_network_interface.nic.id}"]
+location            = "${azurerm_resource_group.hub-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
+  network_interface_ids = ["${azurerm_network_interface.hub-nic.id}"]
   vm_size               = "${var.vmsize}"
 
   storage_image_reference {
@@ -99,8 +99,8 @@ resource "azurerm_virtual_machine" "hub-vm" {
 # Virtual Network Gateway
 resource "azurerm_public_ip" "hub-vpn-gateway1-pip" {
   name                = "hub-vpn-gateway1-pip"
-  location            = "${local.hub-location}"
-  resource_group_name = "${local.hub-resource-group}"
+  location            = "${azurerm_resource_group.hub-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
 
   allocation_method = "Dynamic"
 }
@@ -127,8 +127,8 @@ resource "azurerm_virtual_network_gateway" "vnet-gateway" {
 
 resource "azurerm_virtual_network_gateway_connection" "hub-onprem-conn" {
   name                = "hub-onprem-conn"
-  location            = "${local.hub-location}}"
-  resource_group_name = "${local.hub-resource-group}"
+location            = "${azurerm_resource_group.hub-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
 
   type           = "Vnet2Vnet"
   routing_weight = 1

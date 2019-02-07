@@ -20,7 +20,7 @@ resource "azurerm_network_interface" "hub-nva-nic" {
   enable_ip_forwarding = true
 
   ip_configuration {
-    name                          = "testconfiguration1"
+    name                          = "${local.prefix-hub-nva}"
     subnet_id                     = "${azurerm_subnet.hub-dmz.id}"
     private_ip_address_allocation = "Static"
     private_ip_address            = "10.0.0.36"
@@ -129,7 +129,7 @@ resource "azurerm_route_table" "spoke1-rt" {
     name                   = "toSpoke2"
     address_prefix         = "10.2.0.0/16"
     next_hop_type          = "vnetlocal"
-    next_hop_in_ip_address = "10.0.0.36"
+    #next_hop_in_ip_address = "10.0.0.36"
   }
 
   route {
@@ -152,7 +152,7 @@ resource "azurerm_route_table" "spoke2-rt" {
   route {
     name                   = "toSpoke1"
     address_prefix         = "10.1.0.0/16"
-    next_hop_in_ip_address = "10.0.0.36"
+    #next_hop_in_ip_address = "10.0.0.36"
     next_hop_type          = "vnetlocal"
   }
 

@@ -5,8 +5,8 @@ locals {
 }
 
 resource "azurerm_resource_group" "onprem-vnet-rg" {
-  name     = "${local.hub-resource-group}"
-  location = "${local.hub-resource-group}"
+  name     = "${local.onprem-resource-group}"
+  location = "${local.onprem-location}"
 }
 
 resource "azurerm_virtual_network" "onprem-vnet" {
@@ -85,8 +85,8 @@ resource "azurerm_virtual_machine" "onprem-vm" {
 
 resource "azurerm_public_ip" "onprem-vpn-gateway1-pip" {
   name                = "${local.prefix-onprem}-vpn-gateway1-pip"
-  location            = "${local.hub-location}"
-  resource_group_name = "${local.hub-resource-group}"
+ location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
 
   allocation_method = "Dynamic"
 }
