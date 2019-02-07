@@ -1,12 +1,12 @@
-  locals {
-    onprem-location = "SouthCentralUS"
-    onprem-resource-group = "onprem-vnet-rg"
-    prefix = "onprem" 
-  }
+locals {
+  onprem-location       = "SouthCentralUS"
+  onprem-resource-group = "onprem-vnet-rg"
+  prefix-onprem         = "onprem"
+}
 
-resource "azurerm_resource_group"  "onprem-vnet-rg" {
-    name = "${local.hub-resource-group}"
-    location = "${local.hub-resource-group}"
+resource "azurerm_resource_group" "onprem-vnet-rg" {
+  name     = "${local.hub-resource-group}"
+  location = "${local.hub-resource-group}"
 }
 
 resource "azurerm_virtual_network" "onprem-vnet" {
@@ -14,33 +14,32 @@ resource "azurerm_virtual_network" "onprem-vnet" {
   location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
   resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
   address_space       = ["192.168.0.0/16"]
-  
+
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-onprem}"
   }
 }
 
 resource "azurerm_subnet" "onprem-gateway-subnet" {
   name                 = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
+  resource_group_name  = "${azurerm_resource_group.onprem-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.onprem-vnet.name}"
   address_prefix       = "192.168.255.224/27"
 }
 
 resource "azurerm_subnet" "onprem-mgmt" {
   name                 = "mgmt"
-  resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
+  resource_group_name  = "${azurerm_resource_group.onprem-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.onprem-vnet.name}"
   address_prefix       = "192.168.1.128/25"
 }
 
-
 resource "azurerm_network_interface" "onprem-nic" {
-  name                = "${local.prefix}-nic"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  name                 = "${local.prefix-onprem}-nic"
+  location             = "${azurerm_resource_group.onprem-vnet-rg.location}"
+  resource_group_name  = "${azurerm_resource_group.onprem-vnet-rg.name}"
   enable_ip_forwarding = true
-  
+
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.onprem-mgmt.id}"
@@ -49,9 +48,9 @@ resource "azurerm_network_interface" "onprem-nic" {
 }
 
 resource "azurerm_virtual_machine" "onprem-vm" {
-  name                  = "${local.prefix}-vm"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  name                  = "${local.prefix-onprem}-vm"
+  location              = "${azurerm_resource_group.onprem-vnet-rg.location}"
+  resource_group_name   = "${azurerm_resource_group.onprem-vnet-rg.name}"
   network_interface_ids = ["${azurerm_network_interface.onprem-nic.id}"]
   vm_size               = "${var.vmsize}"
 
@@ -61,39 +60,42 @@ resource "azurerm_virtual_machine" "onprem-vm" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
   storage_os_disk {
     name              = "myosdisk1"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
+
   os_profile {
-    computer_name  = "${local.prefix}-vm"
+    computer_name  = "${local.prefix-onprem}-vm"
     admin_username = "${var.username}"
     admin_password = "${var.password}"
   }
+
   os_profile_linux_config {
     disable_password_authentication = false
   }
+
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-onprem}"
   }
 }
 
 resource "azurerm_public_ip" "onprem-vpn-gateway1-pip" {
-  name                = "${local.prefix}-vpn-gateway1-pip"
+  name                = "${local.prefix-onprem}-vpn-gateway1-pip"
   location            = "${local.hub-location}"
   resource_group_name = "${local.hub-resource-group}"
 
   allocation_method = "Dynamic"
 }
 
-
 resource "azurerm_virtual_network_gateway" "onprem-vpn-gateway" {
   name                = "onprem-vpn-gateway1"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  
+  location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
+
   type     = "Vpn"
   vpn_type = "RouteBased"
 

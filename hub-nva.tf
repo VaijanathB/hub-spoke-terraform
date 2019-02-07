@@ -1,24 +1,23 @@
 locals {
-    prefix = "hub-nva"    
-    hub-nva-location = "CentralUS"
-    hub-nva-resource-group = "hub-nva-rg"
-
+  prefix-hub-nva         = "hub-nva"
+  hub-nva-location       = "CentralUS"
+  hub-nva-resource-group = "hub-nva-rg"
 }
 
 resource "azurerm_resource_group" "hub-nva-rg" {
-  name     = "${local.prefix}-rg"
+  name     = "${local.prefix-hub-nva}-rg"
   location = "${local.hub-nva-location}"
+
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-hub-nva}"
   }
 }
 
 resource "azurerm_network_interface" "hub-nva-nic" {
-  name                = "${local.prefix}-nic"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  name                 = "${local.prefix-hub-nva}-nic"
+  location             = "${azurerm_resource_group.hub-nva-rg.location}"
+  resource_group_name  = "${azurerm_resource_group.hub-nva-rg.name}"
   enable_ip_forwarding = true
-  
 
   ip_configuration {
     name                          = "testconfiguration1"
@@ -28,12 +27,12 @@ resource "azurerm_network_interface" "hub-nva-nic" {
   }
 
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-hub-nva}"
   }
 }
 
-resource "azurerm_virtual_machine" "main" {
-  name                  = "${local.prefix}-vm"
+resource "azurerm_virtual_machine" "hub-nva-vm" {
+  name                  = "${local.prefix-hub-nva}-vm"
   location              = "${azurerm_resource_group.hub-nva-rg.location}"
   resource_group_name   = "${azurerm_resource_group.hub-nva-rg.name}"
   network_interface_ids = ["${azurerm_network_interface.hub-nva-nic.id}"]
@@ -45,30 +44,34 @@ resource "azurerm_virtual_machine" "main" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
+
   storage_os_disk {
     name              = "myosdisk1"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
+
   os_profile {
-    computer_name  = "${local.prefix}-vm"
+    computer_name  = "${local.prefix-hub-nva}-vm"
     admin_username = "${var.username}"
     admin_password = "${var.password}"
   }
+
   os_profile_linux_config {
     disable_password_authentication = false
   }
+
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-hub-nva}"
   }
 }
 
 resource "azurerm_virtual_machine_extension" "enable-routes" {
   name                 = "enable-iptables-routes"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  location             = "${azurerm_resource_group.hub-nva-rg.location}"
+  resource_group_name  = "${azurerm_resource_group.hub-nva-rg.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.hub-nva-vm.name}"
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
@@ -83,7 +86,7 @@ resource "azurerm_virtual_machine_extension" "enable-routes" {
 SETTINGS
 
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-hub-nva}"
   }
 }
 
@@ -99,11 +102,12 @@ resource "azurerm_route_table" "hub-gateway-rt" {
     next_hop_type  = "vnetlocal"
   }
 
-   route {
+  route {
     name           = "toSpoke1"
     address_prefix = "10.1.0.0/16"
     next_hop_type  = "vnetlocal"
   }
+
   route {
     name           = "toSpoke2"
     address_prefix = "10.2.0.0/16"
@@ -111,7 +115,7 @@ resource "azurerm_route_table" "hub-gateway-rt" {
   }
 
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-hub-nva}"
   }
 }
 
@@ -122,18 +126,20 @@ resource "azurerm_route_table" "spoke1-rt" {
   disable_bgp_route_propagation = false
 
   route {
-    name           = "toSpoke2"
-    address_prefix = "10.2.0.0/16"
-    next_hop_type  = "vnetlocal"
+    name                   = "toSpoke2"
+    address_prefix         = "10.2.0.0/16"
+    next_hop_type          = "vnetlocal"
     next_hop_in_ip_address = "10.0.0.36"
   }
+
   route {
-      name = "default"
-      address_prefix = "0.0.0.0/0"
-      next_hop_type = "vnetlocal"
+    name           = "default"
+    address_prefix = "0.0.0.0/0"
+    next_hop_type  = "vnetlocal"
   }
+
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-hub-nva}"
   }
 }
 
@@ -144,17 +150,19 @@ resource "azurerm_route_table" "spoke2-rt" {
   disable_bgp_route_propagation = false
 
   route {
-    name           = "toSpoke1"
-    address_prefix = "10.1.0.0/16"
+    name                   = "toSpoke1"
+    address_prefix         = "10.1.0.0/16"
     next_hop_in_ip_address = "10.0.0.36"
+    next_hop_type          = "vnetlocal"
+  }
+
+  route {
+    name           = "default"
+    address_prefix = "0.0.0.0/0"
     next_hop_type  = "vnetlocal"
   }
-  route {
-      name = "default"
-      address_prefix = "0.0.0.0/0"
-      next_hop_type = "vnetlocal"
-  }
+
   tags {
-    environment = "${local.prefix}"
+    environment = "${local.prefix-hub-nva}"
   }
 }
