@@ -41,9 +41,9 @@ resource "azurerm_network_interface" "onprem-nic" {
   enable_ip_forwarding = true
 
   ip_configuration {
-    name                          = "testconfiguration1"
+    name                          = "${local.prefix-onprem}"
     subnet_id                     = "${azurerm_subnet.onprem-mgmt.id}"
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 

@@ -39,10 +39,10 @@ resource "azurerm_virtual_network_peering" "spoke1-hub-peer" {
   resource_group_name          = "${azurerm_resource_group.spoke1-vnet-rg.name}"
   virtual_network_name         = "${azurerm_virtual_network.spoke1-vnet.name}"
   remote_virtual_network_id    = "${azurerm_virtual_network.hub-vnet.id}"
-  allow_virtual_network_access = true
+ # allow_virtual_network_access = true
   allow_forwarded_traffic      = true
   allow_gateway_transit        = false
-  use_remote_gateways          = true
+  use_remote_gateways          = false
 }
 
 resource "azurerm_network_interface" "spoke1-nic" {
@@ -54,7 +54,7 @@ resource "azurerm_network_interface" "spoke1-nic" {
   ip_configuration {
     name                          = "${local.prefix-spoke1}"
     subnet_id                     = "${azurerm_subnet.spoke1-mgmt.id}"
-    private_ip_address_allocation = "Static"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
