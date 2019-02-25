@@ -34,6 +34,17 @@ resource "azurerm_subnet" "onprem-mgmt" {
   address_prefix       = "192.168.1.128/25"
 }
 
+resource "azurerm_public_ip" "onprem-pip" {
+    name                         = "${local.prefix-onprem}-pip"
+    location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
+    resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
+    public_ip_address_allocation = "dynamic"
+
+    tags {
+        environment = "${local.prefix-onprem}"
+    }
+}
+
 resource "azurerm_network_interface" "onprem-nic" {
   name                 = "${local.prefix-onprem}-nic"
   location             = "${azurerm_resource_group.onprem-vnet-rg.location}"
@@ -44,7 +55,36 @@ resource "azurerm_network_interface" "onprem-nic" {
     name                          = "${local.prefix-onprem}"
     subnet_id                     = "${azurerm_subnet.onprem-mgmt.id}"
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = "${azurerm_public_ip.onprem-pip.id}"
   }
+}
+
+# Create Network Security Group and rule
+resource "azurerm_network_security_group" "onprem-nsg" {
+    name                = "${local.prefix-onprem}-nsg"
+    location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
+    resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
+
+    security_rule {
+        name                       = "SSH"
+        priority                   = 1001
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "22"
+       source_address_prefix      = "*"
+        destination_address_prefix = "*"
+    }
+
+    tags {
+        environment = "onprem"
+    }
+}
+
+resource "azurerm_subnet_network_security_group_association" "mgmt-nsg-association" {
+  subnet_id                 = "${azurerm_subnet.onprem-mgmt.id}"
+  network_security_group_id = "${azurerm_network_security_group.onprem-nsg.id}"
 }
 
 resource "azurerm_virtual_machine" "onprem-vm" {
@@ -85,7 +125,7 @@ resource "azurerm_virtual_machine" "onprem-vm" {
 
 resource "azurerm_public_ip" "onprem-vpn-gateway1-pip" {
   name                = "${local.prefix-onprem}-vpn-gateway1-pip"
- location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
+  location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
   resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
 
   allocation_method = "Dynamic"
@@ -110,3 +150,4 @@ resource "azurerm_virtual_network_gateway" "onprem-vpn-gateway" {
     subnet_id                     = "${azurerm_subnet.onprem-gateway-subnet.id}"
   }
 }
+

@@ -12,7 +12,7 @@ resource "azurerm_resource_group" "hub-vnet-rg" {
 
 resource "azurerm_virtual_network" "hub-vnet" {
   name                = "${local.prefix-hub}-vnet"
-location            = "${azurerm_resource_group.hub-vnet-rg.location}"
+  location            = "${azurerm_resource_group.hub-vnet-rg.location}"
   resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
   address_space       = ["10.0.0.0/16"]
 
@@ -23,29 +23,29 @@ location            = "${azurerm_resource_group.hub-vnet-rg.location}"
 
 resource "azurerm_subnet" "hub-gateway-subnet" {
   name                 = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
+  resource_group_name  = "${azurerm_resource_group.hub-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.hub-vnet.name}"
   address_prefix       = "10.0.255.224/27"
 }
 
 resource "azurerm_subnet" "hub-mgmt" {
   name                 = "mgmt"
-  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
+  resource_group_name  = "${azurerm_resource_group.hub-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.hub-vnet.name}"
   address_prefix       = "10.0.0.64/27"
 }
 
 resource "azurerm_subnet" "hub-dmz" {
   name                 = "dmz"
-  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
+  resource_group_name  = "${azurerm_resource_group.hub-vnet-rg.name}"
   virtual_network_name = "${azurerm_virtual_network.hub-vnet.name}"
   address_prefix       = "10.0.0.32/27"
 }
 
 resource "azurerm_network_interface" "hub-nic" {
   name                 = "${local.prefix-hub}-nic"
-location            = "${azurerm_resource_group.hub-vnet-rg.location}"
-  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
+  location             = "${azurerm_resource_group.hub-vnet-rg.location}"
+  resource_group_name  = "${azurerm_resource_group.hub-vnet-rg.name}"
   enable_ip_forwarding = true
 
   ip_configuration {
@@ -62,8 +62,8 @@ location            = "${azurerm_resource_group.hub-vnet-rg.location}"
 #Virtual Machine
 resource "azurerm_virtual_machine" "hub-vm" {
   name                  = "${local.prefix-hub}-vm"
-location            = "${azurerm_resource_group.hub-vnet-rg.location}"
-  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
+  location              = "${azurerm_resource_group.hub-vnet-rg.location}"
+  resource_group_name   = "${azurerm_resource_group.hub-vnet-rg.name}"
   network_interface_ids = ["${azurerm_network_interface.hub-nic.id}"]
   vm_size               = "${var.vmsize}"
 
@@ -127,7 +127,7 @@ resource "azurerm_virtual_network_gateway" "vnet-gateway" {
 
 resource "azurerm_virtual_network_gateway_connection" "hub-onprem-conn" {
   name                = "hub-onprem-conn"
-location            = "${azurerm_resource_group.hub-vnet-rg.location}"
+  location            = "${azurerm_resource_group.hub-vnet-rg.location}"
   resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
 
   type           = "Vnet2Vnet"
@@ -150,3 +150,4 @@ resource "azurerm_virtual_network_gateway_connection" "onprem-hub-conn" {
 
   shared_key = "${local.shared-key}"
 }
+

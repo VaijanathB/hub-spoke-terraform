@@ -1,3 +1,4 @@
+
 locals {
   prefix-hub-nva         = "hub-nva"
   hub-nva-location       = "CentralUS"
@@ -100,20 +101,19 @@ resource "azurerm_route_table" "hub-gateway-rt" {
     name           = "toHub"
     address_prefix = "10.0.0.0/16"
     next_hop_type  = "VnetLocal"
-    
   }
 
   route {
-    name           = "toSpoke1"
-    address_prefix = "10.1.0.0/16"
-    next_hop_type  = "VirtualAppliance"
+    name                   = "toSpoke1"
+    address_prefix         = "10.1.0.0/16"
+    next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = "10.0.0.36"
   }
 
   route {
-    name           = "toSpoke2"
-    address_prefix = "10.2.0.0/16"
-    next_hop_type  = "VirtualAppliance"
+    name                   = "toSpoke2"
+    address_prefix         = "10.2.0.0/16"
+    next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = "10.0.0.36"
   }
 
@@ -169,3 +169,4 @@ resource "azurerm_route_table" "spoke2-rt" {
     environment = "${local.prefix-hub-nva}"
   }
 }
+
