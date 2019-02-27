@@ -149,5 +149,7 @@ resource "azurerm_virtual_network_gateway" "onprem-vpn-gateway" {
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = "${azurerm_subnet.onprem-gateway-subnet.id}"
   }
+  depends_on = ["azurerm_public_ip.onprem-vpn-gateway1-pip"]
+
 }
 
