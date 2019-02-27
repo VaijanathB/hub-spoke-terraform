@@ -1,7 +1,7 @@
 locals {
-  onprem-location       = "SouthCentralUS"
-  onprem-resource-group = "onprem-vnet-rg"
-  prefix-onprem         = "onprem"
+  onprem-location       = "WestUS"
+  onprem-resource-group = "test-onprem-vnet-rg"
+  prefix-onprem         = "test-onprem"
 }
 
 resource "azurerm_resource_group" "onprem-vnet-rg" {

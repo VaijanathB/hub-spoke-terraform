@@ -1,7 +1,7 @@
 locals {
-  spoke1-location       = "CentralUS"
-  spoke1-resource-group = "spoke1-vnet-rg"
-  prefix-spoke1         = "spoke1"
+  spoke1-location       = "EastUS"
+  spoke1-resource-group = "test-spoke1-vnet-rg"
+  prefix-spoke1         = "test-spoke1"
 }
 
 resource "azurerm_resource_group" "spoke1-vnet-rg" {
@@ -40,7 +40,7 @@ resource "azurerm_virtual_network_peering" "spoke1-hub-peer" {
   virtual_network_name      = "${azurerm_virtual_network.spoke1-vnet.name}"
   remote_virtual_network_id = "${azurerm_virtual_network.hub-vnet.id}"
 
-  # allow_virtual_network_access = true
+  allow_virtual_network_access = true
   allow_forwarded_traffic = true
   allow_gateway_transit   = false
   use_remote_gateways     = false
@@ -100,6 +100,7 @@ resource "azurerm_virtual_network_peering" "hub-spoke1-peer" {
   resource_group_name       = "${azurerm_resource_group.hub-vnet-rg.name}"
   virtual_network_name      = "${azurerm_virtual_network.hub-vnet.name}"
   remote_virtual_network_id = "${azurerm_virtual_network.spoke1-vnet.id}"
+  allow_virtual_network_access = true
   allow_forwarded_traffic   = true
   allow_gateway_transit     = true
   use_remote_gateways       = false

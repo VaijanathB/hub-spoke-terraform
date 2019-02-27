@@ -1,8 +1,8 @@
 
 locals {
-  prefix-hub-nva         = "hub-nva"
-  hub-nva-location       = "CentralUS"
-  hub-nva-resource-group = "hub-nva-rg"
+  prefix-hub-nva         = "test-hub-nva"
+  hub-nva-location       = "EastUS"
+  hub-nva-resource-group = "test-hub-nva-rg"
 }
 
 resource "azurerm_resource_group" "hub-nva-rg" {
@@ -24,7 +24,7 @@ resource "azurerm_network_interface" "hub-nva-nic" {
     name                          = "${local.prefix-hub-nva}"
     subnet_id                     = "${azurerm_subnet.hub-dmz.id}"
     private_ip_address_allocation = "Static"
-    private_ip_address            = "10.0.0.37"
+    private_ip_address            = "10.0.0.36"
   }
 
   tags {
