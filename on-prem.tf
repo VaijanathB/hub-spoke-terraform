@@ -1,7 +1,7 @@
 locals {
-  onprem-location       = "WestUS"
-  onprem-resource-group = "test-onprem-vnet-rg"
-  prefix-onprem         = "test-onprem"
+  onprem-location       = "SouthCentralUS"
+  onprem-resource-group = "onprem-vnet-rg"
+  prefix-onprem         = "onprem"
 }
 
 resource "azurerm_resource_group" "onprem-vnet-rg" {
@@ -38,7 +38,7 @@ resource "azurerm_public_ip" "onprem-pip" {
     name                         = "${local.prefix-onprem}-pip"
     location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
     resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
-    public_ip_address_allocation = "dynamic"
+    allocation_method   = "Dynamic"
 
     tags {
         environment = "${local.prefix-onprem}"

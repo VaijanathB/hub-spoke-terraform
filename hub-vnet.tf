@@ -1,7 +1,7 @@
 locals {
-  prefix-hub         = "testhub"
-  hub-location       = "EastUS"
-  hub-resource-group = "test-hub-vnet-rg"
+  prefix-hub         = "hub"
+  hub-location       = "CentralUS"
+  hub-resource-group = "hub-vnet-rg"
   shared-key         = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 
@@ -142,8 +142,8 @@ resource "azurerm_virtual_network_gateway_connection" "hub-onprem-conn" {
 
 resource "azurerm_virtual_network_gateway_connection" "onprem-hub-conn" {
   name                = "onprem-hub-conn"
-  location            = "${azurerm_resource_group.hub-vnet-rg.location}"
-  resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
+  location            = "${azurerm_resource_group.onprem-vnet-rg.location}"
+  resource_group_name = "${azurerm_resource_group.onprem-vnet-rg.name}"
   type                            = "Vnet2Vnet"
   routing_weight = 1
   virtual_network_gateway_id      = "${azurerm_virtual_network_gateway.onprem-vpn-gateway.id}"
