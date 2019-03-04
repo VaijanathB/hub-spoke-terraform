@@ -105,7 +105,7 @@ resource "azurerm_public_ip" "hub-vpn-gateway1-pip" {
   allocation_method = "Dynamic"
 }
 
-resource "azurerm_virtual_network_gateway" "vnet-gateway" {
+resource "azurerm_virtual_network_gateway" "hub-vnet-gateway" {
   name                = "hub-vpn-gateway1"
   location            = "${azurerm_resource_group.hub-vnet-rg.location}"
   resource_group_name = "${azurerm_resource_group.hub-vnet-rg.name}"
@@ -134,7 +134,7 @@ resource "azurerm_virtual_network_gateway_connection" "hub-onprem-conn" {
   type           = "Vnet2Vnet"
   routing_weight = 1
 
-  virtual_network_gateway_id      = "${azurerm_virtual_network_gateway.vnet-gateway.id}"
+  virtual_network_gateway_id      = "${azurerm_virtual_network_gateway.hub-vnet-gateway.id}"
   peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.onprem-vpn-gateway.id}"
 
   shared_key = "${local.shared-key}"
@@ -147,7 +147,7 @@ resource "azurerm_virtual_network_gateway_connection" "onprem-hub-conn" {
   type                            = "Vnet2Vnet"
   routing_weight = 1
   virtual_network_gateway_id      = "${azurerm_virtual_network_gateway.onprem-vpn-gateway.id}"
-  peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.vnet-gateway.id}"
+  peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.hub-vnet-gateway.id}"
 
   shared_key = "${local.shared-key}"
 }
